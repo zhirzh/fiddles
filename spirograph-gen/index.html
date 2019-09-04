@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Spirograph</title>
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            background-color: #aab;
+            height: 100%;
+        }
+
+        #panel {
+            width: 1000px;
+            height: 100%;
+            margin: auto;
+        }
+
+        #inputBox {
+            float: left;
+            height: 100%;
+            padding: 10px;
+            background-color: #fafafa;
+            width: 300px;
+        }
+
+        #inputBox label {
+            display: block;
+        }
+
+        #inputBox label span {
+            display: inline-block;
+            width: 100px;
+        }
+
+        #inputBox label input {
+            width: 140px;
+        }
+
+        #inputBox [type="button"] {
+            width: 100%;
+        }
+
+        #outputBox {
+            background-color: #eee;
+            float: left;
+            height: 100%;
+            width: 700px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="panel">
+        <div id="inputBox">
+            <a href="https://gist.github.com/zhirzh/27172e92ae95b4167cc1/" target="_blank">CODE</a>
+            <form>
+                <label>
+                    <span>R value</span>
+                    <input id="R-value" type="number" placeholder="10">
+                </label>
+                <br>
+                <label>
+                    <span>r value</span>
+                    <input id="r-value" type="number" placeholder="50">
+                </label>
+                <br>
+                <label>
+                    <span>O value</span>
+                    <input id="O-value" type="number" placeholder="7">
+                </label>
+                <br>
+                <input type="button" onclick="checkInput()" value="PLOT">
+                <br>
+                <br>
+                <input type="button" onclick="resetPlot()" value="RESET">
+            </form>
+        </div>
+        <div id="outputBox"></div>
+    </div>
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+
+<script type="text/javascript">
+    function reduceFraction(numerator, denominator) {
+        /*in plotting function, upper limit of 't' can be calculated as follows:
+            for given R and r, reduce R/r fraction to simplest form
+            let new fraction be (R')/(r')
+
+            upper limit of 't' = 2*(r')
+        */
+        var gcd = function gcd(a, b) {
+            return b ? gcd(b, a % b) : a;
+        };
+        gcd = gcd(numerator, denominator);
+        return [numerator / gcd, denominator / gcd];
+    }
+
+    function zoomed() {
+        g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    }
+
+    function checkInput() {
+        var R = (document.querySelector('#R-value').value ? +document.querySelector('#R-value').value : 50),
+            r = (document.querySelector('#r-value').value ? +document.querySelector('#r-value').value : 7),
+            O = (document.querySelector('#O-value').value ? +document.querySelector('#O-value').value : 10);
+        plotOnSVG(R, r, O);
+    }
+
+    function resetPlot() {
+        zoom.translate([0, 0]);
+        zoom.scale(1);
+        g.attr('transform', 'translate(0,0), scale(1)');
+    }
+
+    function plotOnSVG(R, r, O) {
+        points = [];
+        var T = reduceFraction(R, r)[1] * 2;
+        for (var t = 0; t <= T; t += 0.01) {
+            var th = t * Math.PI;
+            var x = width / 2 + (R + r) * Math.cos(th) - (r + O) * Math.cos((R / r + 1) * th);
+            var y = height / 2 + (R + r) * Math.sin(th) - (r + O) * Math.sin((R / r + 1) * th);
+            points.push([x, y]);
+        }
+        path.data([points])
+            .attr("d", lineGen);
+    }
+</script>
+<script type="text/javascript">
+    var width = document.querySelector('#outputBox').offsetWidth;
+    var height = document.querySelector('#outputBox').offsetHeight;
+    var points = [];
+
+    var zoom = d3.behavior.zoom();
+    var lineGen = d3.svg.line()
+        .x(function(d) {
+            return d[0];
+        })
+        .y(function(d) {
+            return d[1];
+        });
+
+    var svg = d3.select("#outputBox")
+        .append("svg")
+        .attr({
+            "width": width,
+            "height": height,
+        })
+        .call(zoom.on("zoom", zoomed));
+    var g = svg.append("g");
+    var path = g.append("path")
+        .style({
+            "fill": 'none',
+            "stroke": '#248',
+            "stroke-width": 1,
+        });
+</script>
+
+</html>
