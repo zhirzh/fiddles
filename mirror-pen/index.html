@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mirror Pen</title>
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      height: 100%;
+      background-color: #fafafa;
+    }
+    #controls {
+      float: right;
+      border-left: 2px solid #ddd;
+      height: 100%;
+    }
+    #controls div {
+      color: #555;
+      padding: 5px 20px 25px;
+    }
+    #controls h2 {
+      color: #222;
+      margin-top: 10px;
+      border-bottom: 2px solid #aaa;
+      text-align: center;
+    }
+    #layers {
+      position: relative;
+    }
+    canvas {
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+  <div id="layers">
+    <canvas class="layer" id="layer-bg"></canvas>
+    <canvas class="layer" id="layer-fg"></canvas>
+  </div>
+
+  <div id="controls">
+    <div>
+      <h2>Controls</h2>
+    </div>
+    <div>
+      <p>Number of Slices: <span id="num-slices-value"></span></p>
+      <input type="range" id="num-slices" min="3" max="100" value="" step="1">
+    </div>
+    <div>
+      <p>Offset: <span id="offset-value"></span></p>
+      <input type="range" id="offset" min="0" max="360" value="" step="1">
+    </div>
+    <div>
+      <p>Line Width: <span id="line-width-value"></span></p>
+      <input type="range" id="line-width" min="1" max="20" value="" step="1">
+    </div>
+    <div>
+      <p>
+        <label>
+          Show Background:
+          <input type="checkbox" id="show-bg">
+        </label>
+      </p>
+    </div>
+  </div>
+</body>
+<script type="text/javascript" src="index.js"></script>
+</html>
