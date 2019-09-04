@@ -1,0 +1,2 @@
+puma: bundle exec puma
+webrick: rails s -e development

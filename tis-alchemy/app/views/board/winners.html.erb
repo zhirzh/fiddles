@@ -1,0 +1,16 @@
+<div class="container">
+	<div class="col-sm-12 " style="overflow:auto;height:485px;margin-top:50px;">
+		<table class="table table-striped table-bordered" style="background-color:#eee;border:2px solid #aaa">
+			<tr>
+				<th>Team</th>
+				<th>Score</th>
+			</tr>
+			<% @players.each do |p| %>
+				<tr>
+					<td><%=p.email%></td>
+					<td><%=p.score%></td>
+				</tr>
+			<% end %>
+		</table>
+	</div>
+</div>

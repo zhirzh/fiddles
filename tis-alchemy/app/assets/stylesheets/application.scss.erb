@@ -1,0 +1,55 @@
+@import "bootstrap-sprockets";
+@import "bootstrap";
+@import "game";
+*{
+  margin: 0;padding: 0;
+  box-sizing:border-box;
+}
+html,body{
+  height: 100%;
+  width: 100%;
+}
+body{
+  padding-top: 50px;
+  overflow: hidden;
+  background-image: url(<%= asset_path('bg-tile.png')%>);
+  background-size: 400px auto;
+  nav{
+    margin: 0!important;
+    position: fixed!important;
+    top:0;
+    width: 100%;
+    z-index: 1;
+    *{
+      color: #fff!important;
+
+    }
+  }
+}
+.make-flat{
+  background-image: none;
+}
+.make-sharp{
+  border-radius: 2px;
+}
+.make-centered{
+  position:relative;
+  left:50%;
+  top:40%;
+  transform:translate(-50%,-50%);
+
+}
+.notifyjs-corner{
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  margin: 0!important; margin-top:15px!important;
+  *{
+    border-radius: 0!important;
+    margin: 0!important;
+  }
+  .notifyjs-bootstrap-base{
+    text-align: center!important;
+    padding-left: 10px!important;
+    padding-right: 10px!important;
+  }
+}

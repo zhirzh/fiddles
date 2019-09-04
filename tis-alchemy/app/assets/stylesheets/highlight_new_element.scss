@@ -1,0 +1,22 @@
+.new_element{
+  -webkit-animation: highlight_new_element 1s;
+  -moz-animation: highlight_new_element 1s;
+  -ms-animation: highlight_new_element 1s;
+  -o-animation: highlight_new_element 1s;
+}
+@-webkit-keyframes highlight_new_element {
+  0%   { background: #fda; }
+  100% { background: none; }
+}
+@-moz-keyframes highlight_new_element {
+  0%   { background: #fda; }
+  100% { background: none; }
+}
+@-ms-keyframes highlight_new_element {
+  0%   { background: #fda; }
+  100% { background: none; }
+}
+@-o-keyframes highlight_new_element {
+  0%   { background: #fda; }
+  100% { background: none; }
+}
