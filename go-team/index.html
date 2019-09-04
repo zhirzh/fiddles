@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style type="text/css">
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            border:1px dashed red;
+        }
+        div {
+            height: 500px;
+            width: 500px;
+            position: relative;
+            background-color: black;
+        }
+        img {
+            display: none;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+        }
+        img.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <canvas height="500" width="500"></canvas>
+        <img id="b" height="200" width="200" src="b.png">
+        <img id="r" height="200" width="200" src="r.png">
+        <img id="y" height="200" width="200" src="y.png">
+    </div>
+    <select>
+        <option disabled="true" selected="true">Team</option>
+        <option value="y">Instinct</option>
+        <option value="b">Mystic</option>
+        <option value="r">Valor</option>
+    </select>
+    <button id="go" disabled="true">GO!</button>
+</body>
+<script type="text/javascript" src="//connect.facebook.net/en_US/sdk.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+<script type="text/javascript" src="index.js"></script>
+</html>
