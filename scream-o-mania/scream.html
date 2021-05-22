@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+
+<body>
+  <div id="cover-container">
+    <div id="cover-up">
+      <img src="oasis.png">
+    </div>
+    <div id="cover-down">
+      <img src="bfc.png">
+    </div>
+  </div>
+  <div id="graph-container">
+    <canvas id="graph"></canvas>
+  </div>
+  <div id="gauge-container">
+    <canvas height="400" width="600" id="gauge"></canvas>
+    <div id="preview-textfield"></div>
+  </div>
+  <div id="screen"><div></div></div>
+</body>
+<script type="text/javascript" src="gauge.min.js"></script>
+
+<script type="text/javascript">
+  'use strict';
+
+  function initGlobals() {
+    console.log("initGlobals");
+
+    window.animID = null;
+    window.inputStream = null;
+    window.stats = [0];
+    window.stream = null;
+    window.threshold = 50;
+
+    document.querySelector("#graph").width = screen.width;
+    document.querySelector("#graph").height = screen.height * 0.3;
+
+    document.querySelector("#gauge").width = screen.width;
+    document.querySelector("#gauge").height = screen.height * 0.7;
+
+    // document.querySelector("#graph").width = screen.width;
+    // document.querySelector("#graph").height = screen.height * 0.4;
+
+    // document.querySelector("#gauge").width = screen.width;
+    // document.querySelector("#gauge").height = screen.height * 0.6;
+
+    window.max_amp = function() {
+      return Math.max.apply(Math, window.stats);
+    };
+
+    navigator.getUserMedia = navigator.getUserMedia ||
+      navigator.mozGetUserMedia ||
+      navigator.webkitGetUserMedia ||
+      null;
+  }
+
+  function initGauge() {
+    console.log("initGauge");
+
+    var gaugeCanvas = document.querySelector('canvas#gauge');
+    var gauge = new Gauge(gaugeCanvas).setOptions({
+      lines: 12,
+      angle: 0.15,
+      lineWidth: 0.44,
+      pointer: {
+        length: 0.75,
+        strokeWidth: 0.035,
+        color: '#000000'
+      },
+      limitMax: 'true',
+      colorStart: '#6FADCF',
+      colorStop: '#8FC0DA',
+      strokeColor: '#E0E0E0',
+      generateGradient: true
+    });
+
+    gauge.maxValue = 400;
+    gauge.animationSpeed = 5;
+    gauge.setTextField(document.querySelector("#preview-textfield"));
+
+    return gauge;
+  }
+
+  function initCanvas() {
+    console.log("initCanvas");
+
+    var canvas = document.querySelector("#graph");
+    var canvasCtx = canvas.getContext("2d");
+
+    canvasCtx.fillStyle = 'rgb(100,30,5)';
+    canvasCtx.lineWidth = 5;
+    canvasCtx.strokeStyle = 'rgb(0, 200, 250)';
+
+    return [canvas, canvasCtx];
+  }
+
+  function initWebAudio(stream) {
+    console.log("initWebAudio");
+
+    var audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+    var analyser = audioCtx.createAnalyser();
+    var bufferLength = analyser.frequencyBinCount;
+
+    window.inputStream = audioCtx.createMediaStreamSource(stream);
+
+    inputStream.connect(analyser);
+    analyser.connect(audioCtx.destination);
+
+    return [analyser, bufferLength];
+  }
+
+  function initGUM() {
+    console.log("initGUM");
+
+    if (!navigator.getUserMedia) {
+      return 0;
+    }
+
+    navigator.getUserMedia({
+      audio: true
+    }, function(stream) {
+      window.stream = stream;
+
+      var gauge = initGauge();
+      var [canvas, canvasCtx] = initCanvas();
+      var [analyser, bufferLength] = initWebAudio(stream);
+
+      var dataArray = new Float32Array(bufferLength);
+      var sliceWidth = canvas.width * 1.0 / bufferLength;
+
+      draw(analyser, bufferLength, canvas, canvasCtx, dataArray, gauge, sliceWidth);
+
+    }, function(e) {
+      console.log("navigator.getUserMedia not supported");
+      console.log(e);
+    });
+  }
+
+  function draw(analyser, bufferLength, canvas, canvasCtx, dataArray, gauge, sliceWidth) {
+    window.animID = requestAnimationFrame(function() {
+      draw(analyser, bufferLength, canvas, canvasCtx, dataArray, gauge, sliceWidth);
+    });
+    var x = 0;
+    var y = 0;
+    var amp = -1;
+
+    analyser.getFloatTimeDomainData(dataArray);
+
+    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+    canvasCtx.beginPath();
+
+    for (var i = 0; i < bufferLength; i++) {
+      y = dataArray[i] * canvas.height / 2;
+      amp = (y > amp) ? (y) : (amp);
+      if (i === 0) {
+        canvasCtx.moveTo(0, (canvas.height / 2));
+      } else {
+        canvasCtx.lineTo(x, (canvas.height / 2) + y);
+      }
+      x += sliceWidth;
+    }
+
+    amp *= 2;
+    gauge.set(amp + 1);
+
+    if (amp > window.threshold) {
+      window.stats.push(amp);
+    }
+
+    canvasCtx.lineTo(canvas.width, canvas.height / 2);
+    canvasCtx.stroke();
+  }
+</script>
+
+<script type="text/javascript">
+  function countDown(t) {
+    if (t === 0) {
+      console.log("full stop");
+
+      window.stream.stop();
+      cancelAnimationFrame(animID);
+      document.querySelector("#screen").remove();
+
+      setTimeout(function() {
+        alert("SCORE: " + max_amp().toFixed(2));
+        window.location.reload();
+      }, 500);
+
+      return;
+    }
+
+    if (t < 4) {
+      document.querySelector("#screen div").innerHTML = t;
+      document.querySelector("#screen").style.display = "block";
+    }
+
+    console.log("Time left: " + t);
+    setTimeout(function() {
+      countDown(t - 1)
+    }, 1000)
+  }
+
+  function init(){
+    initGlobals();
+    initGUM();
+
+    setTimeout(function() {
+      countDown(15);
+    }, 100);
+  }
+
+  function removeCover(){
+    document.querySelector("#cover-up").style.transform = "translateY(-150%)"
+    document.querySelector("#cover-down").style.transform = "translateY(150%)";
+    setTimeout(function(){
+      document.querySelector("#cover-container").remove();
+      init();
+    }, 2000);
+  }
+
+  window.onload = function(){
+    setTimeout(removeCover, 2000);
+  }
+</script>
+
+</html>

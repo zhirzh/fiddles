@@ -1,0 +1,131 @@
+<script type="text/javascript">
+  Peer.prototype.connectTo = function(remotePeer, room) {
+    if (remotePeer in peer.conns) {
+      console.error("Connection exists with Peer-ID = " + remotePeer + " at idx = " + this.conns[remotePeer].idx);
+      return;
+    }
+    var dataConnection = this.connect(remotePeer, {
+      reliable: true
+    });
+    dataConnection.on("data", function(data) {
+      console.log(data);
+    });
+    this.conns[dataConnection.peer] = dataConnection;
+    this.conns[dataConnection.peer]["idx"] = this.conns.count;
+    this.conns[this.conns.count++] = dataConnection;
+  };
+  Peer.prototype.room = null;
+  Peer.prototype.conns = {
+    count: 0,
+    sendAll: function(msg) {
+      for (var connIdx in this) {
+        if (isNaN(+connIdx)) {
+          continue;
+        }
+        var conn = this[connIdx];
+        conn.send(msg);
+      }
+    }
+  };
+</script>
+
+<script type="text/javascript">
+  var peer = (function() {
+    var peer = new Peer({
+      debug: 3,
+      host: window.location.hostname,
+      path: "/",
+      port: 9000
+    });
+    peer.on("open", function() {
+      window.peerID = peer.id;
+      createRoom();
+    });
+    peer.on("connection", function(dataConnection) {
+      if (dataConnection.peer in peer.conns) {
+        console.error("Connection exists with Peer-ID = " + dataConnection.peer + " at idx = " + this.conns[dataConnection.peer].idx);
+        return;
+      }
+      dataConnection.on("data", function(data) {
+        console.log(data);
+      });
+      this.conns[this.conns.count++] = dataConnection;
+      this.conns[dataConnection.peer] = dataConnection;
+      this.conns[dataConnection.peer]["idx"] = this.conns.count;
+    });
+    return peer;
+  })();
+</script>
+
+<script type="text/javascript">
+  function createRoom() {
+    var room = prompt("CREATE ROOM");
+    var url = (room) ? ("/" + room) : ("");
+    if (!url.length) {
+      return;
+    }
+    $.post(url, {
+      peer: peer.id
+    }, function(status) {
+      createRoomCallback(status, room);
+    });
+  }
+
+  function createRoomCallback(status, room) {
+    switch (+status) {
+      case 0:
+        alert("ERROR! A ROOM ALREAY EXISTS WITH THIS NAME");
+        createRoom();
+        break;
+      case 1:
+        var url = "/" + room;
+        alert("SUCCESS! ROOM CREATED AT:\n" + (window.location.origin + url));
+        peer.room = room;
+        window.peerRoom = room;
+        window.addEventListener("unload", unloadCallback);
+        break;
+    }
+  }
+
+  function joinRoom() {
+    var room = prompt("JOIN ROOM");
+    var url = (room) ? ("/" + room) : ("");
+    if (!url.length) {
+      return;
+    }
+    $.get(url, {
+      peer: peer.id
+    }, function(remotePeers) {
+      joinRoomCallback(remotePeers, room);
+    });
+  }
+
+  function joinRoomCallback(remotePeers, room) {
+    switch (remotePeers) {
+      case "0":
+        alert("ERROR! A ROOM ALREAY EXISTS WITH THIS NAME");
+        joinRoom();
+        return;
+      case "1":
+        alert("ERROR! ALREAY CONNECTED TO THIS ROOM");
+        return;
+    }
+    remotePeers.forEach(function(remotePeer) {
+      console.log(remotePeer);
+      peer.connectTo(remotePeer, room);
+    });
+    alert("SUCCESS! CONNECTED TO ROOM:\n" + room);
+    peer.room = room;
+    window.peerRoom = room;
+    window.addEventListener("unload", unloadCallback);
+  }
+
+  function unloadCallback() {
+    if (window.peerRoom) {
+      $.ajax({
+        method: "DELETE",
+        url: "/" + window.peerRoom + "?peer=" + window.peerID
+      });
+    }
+  }
+</script>
